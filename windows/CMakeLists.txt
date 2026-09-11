@@ -119,14 +119,6 @@ install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}"
 
 # On tagged GitHub Actions runs, mirror the finished packages onto a delivery
 # branch and publish them as a release; a no-op everywhere else.
-install(CODE "
-  execute_process(
-    COMMAND pwsh -NoProfile -ExecutionPolicy Bypass
-      \"${CMAKE_SOURCE_DIR}/../tools/deliver-windows-artifacts.ps1\"
-      \"${CMAKE_INSTALL_PREFIX}\"
-    RESULT_VARIABLE OBLIVION_DELIVER_RC
-  )
-  if(OBLIVION_DELIVER_RC)
-    message(WARNING \"the artifact delivery helper exited with \${OBLIVION_DELIVER_RC}\")
-  endif()
-  " COMPONENT Runtime)
+set(OBLIVION_DELIVER_PREFIX "${CMAKE_INSTALL_PREFIX}")
+install(SCRIPT "${CMAKE_SOURCE_DIR}/../tools/deliver-windows-artifacts.cmake"
+  COMPONENT Runtime)
