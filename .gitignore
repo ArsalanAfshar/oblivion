@@ -56,3 +56,7 @@ aether-team-*.toml
 # android release signing
 android/key.properties
 android/*.jks
+
+# offline VC++ redistributable staged for the installer, fetched on the runner
+windows/installer/vc_redist.x64.exe
+dist/

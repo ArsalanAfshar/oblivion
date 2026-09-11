@@ -67,12 +67,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "org.bepass" "\0"
-            VALUE "FileDescription", "oblivion" "\0"
+            VALUE "FileDescription", "Oblivion - Unofficial Warp Client" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "oblivion" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 org.bepass. All rights reserved." "\0"
             VALUE "OriginalFilename", "oblivion.exe" "\0"
-            VALUE "ProductName", "oblivion" "\0"
+            VALUE "ProductName", "Oblivion" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

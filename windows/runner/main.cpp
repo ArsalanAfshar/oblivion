@@ -21,9 +21,18 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   project.set_dart_entrypoint_arguments(std::move(command_line_arguments));
 
   FlutterWindow window(project);
-  Win32Window::Point origin(10, 10);
-  Win32Window::Size size(1280, 720);
-  if (!window.Create(L"oblivion", origin, size)) {
+
+  // The desktop shell settles on a phone-like 440x700 frame once Dart takes
+  // over; start at that size, centred, so the window never visibly jumps.
+  const int width = 440;
+  const int height = 700;
+  const int screen_width = ::GetSystemMetrics(SM_CXSCREEN);
+  const int screen_height = ::GetSystemMetrics(SM_CYSCREEN);
+  Win32Window::Point origin(
+      (screen_width > width) ? (screen_width - width) / 2 : 0,
+      (screen_height > height) ? (screen_height - height) / 2 : 0);
+  Win32Window::Size size(width, height);
+  if (!window.Create(L"Oblivion", origin, size)) {
     return EXIT_FAILURE;
   }
   window.SetQuitOnClose(true);
