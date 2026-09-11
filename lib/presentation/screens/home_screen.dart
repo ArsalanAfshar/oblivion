@@ -9,6 +9,7 @@ import '../../l10n/generated/app_localizations.dart';
 import '../providers/tunnel_providers.dart';
 import '../widgets/connect_switch.dart';
 import '../widgets/flag_icon.dart';
+import '../widgets/language_switcher.dart';
 import '../widgets/login_code_dialog.dart';
 import '../widgets/screen_header.dart';
 import 'about_screen.dart';

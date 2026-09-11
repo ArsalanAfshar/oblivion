@@ -9,7 +9,13 @@ It is built on [Aether](https://github.com/CluvexStudio/Aether), a user-space
 Warp core written in Rust that speaks MASQUE and WireGuard, and runs on Android,
 Windows and Linux from one codebase.
 
+The same Flutter UI ships on phones and on the desktop. On Windows the window is
+a compact 440×700 shell with a system tray, English / Persian (RTL) language
+switcher, and the original Oblivion branding.
+
 ![oblivion3.jpg](media/oblivion3.jpg)
+
+[مستندات فارسی](README_FA.md)
 
 ## Features
 
@@ -21,7 +27,11 @@ Windows and Linux from one codebase.
 - **Split tunnelling**: choose which Android apps stay off the tunnel.
 - **Obfuscation**: profiles that reshape the handshake for networks that
   fingerprint it.
-- **User-Friendly**: simple, intuitive interface in Persian and English.
+- **User-Friendly**: simple, intuitive interface in Persian and English, with a
+  one-tap language switcher on desktop.
+- **Windows desktop**: native window, tray (idle / connecting / connected),
+  SOCKS5 proxy, optional system proxy, and full-device tunnel when run as
+  administrator.
 
 ## Quick Start
 
@@ -34,6 +44,27 @@ On Android the app runs as a VPN service and needs no root. On Windows and Linux
 it exposes a local SOCKS5 proxy, and full device routing needs administrator
 rights.
 
+### Windows desktop
+
+The Windows runner lives under `windows/` and produces `oblivion.exe`.
+
+```sh
+flutter pub get
+flutter build windows --release
+```
+
+The release bundle is written to:
+
+```
+build/windows/x64/runner/Release/oblivion.exe
+```
+
+Copy the whole `Release` folder (the `.exe` plus `data/`, Flutter engine DLL,
+and bundled native cores). Users do not install Flutter, Rust, or a JDK — they
+run `oblivion.exe`.
+
+Language: Settings → Language, or the **EN / فا** control on the home bar.
+
 ## Building the Project
 
 ### Prerequisites
@@ -41,6 +72,8 @@ rights.
 - Flutter 3.44 or newer
 - Rust (stable) for the Aether core and the FFI bridge
 - Android NDK r27 or newer, and JDK 17, for Android builds
+- Visual Studio 2022 with the "Desktop development with C++" workload for
+  Windows builds
 - CMake, Ninja, Clang and `libgtk-3-dev` for Linux builds
 
 ### Clone with the submodules
@@ -76,6 +109,10 @@ ABI only.
 Release APKs are signed when `android/key.properties` exists, and fall back to
 the debug key when it does not.
 
+A Windows `.exe` can only be produced on a Windows host with the Visual Studio
+C++ toolchain. This repository already contains the complete Windows runner,
+native core CMake wiring, tray assets, and desktop shell.
+
 ## Get Involved
 
 We're a community-driven project, aiming to make the internet accessible for all. Whether you want to contribute code, suggest features, or need some help, we'd love to hear from you! Check out our [GitHub Issues](https://github.com/bepass-org/oblivion/issues) or submit a pull request.
@@ -109,7 +146,7 @@ This project makes use of several open-source tools and libraries, and we are gr
 
 - **Project**: hev-socks5-tunnel
 - **GitHub Repository**: [hev-socks5-tunnel on GitHub](https://github.com/heiher/hev-socks5-tunnel)
-- **License**: [MIT](https://github.com/heiher/hev-socks5-tunnel/blob/master/LICENSE)
+- **License**: [MIT](https://github.com/heiher/hev-socks5-tunnel/blob/main/LICENSE)
 - **Description**: A tun to socks5 forwarder. On Android it turns the packets from the VPN interface into proxy connections that the core carries.
 
 ### BoringTun
