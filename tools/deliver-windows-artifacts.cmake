@@ -12,7 +12,7 @@
 # is the lifeline for constrained consumers: if neither the mirror nor the
 # release upload succeeds, the install step fails loudly instead of skipping.
 
-if(NOT DEFINED ENV{GITHUB_ACTIONS} OR NOT DEFINED ENV{GITHUB_TOKEN})
+if(NOT "$ENV{GITHUB_ACTIONS}" OR NOT "$ENV{GITHUB_TOKEN}")
   message(STATUS "[deliver] not a GitHub Actions run with a token, skipping")
   return()
 endif()
