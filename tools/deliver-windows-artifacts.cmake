@@ -16,10 +16,46 @@ if(NOT DEFINED ENV{GITHUB_ACTIONS} OR NOT DEFINED ENV{GITHUB_TOKEN})
   message(STATUS "[deliver] not a GitHub Actions run with a token, skipping")
   return()
 endif()
+
+# Temporary canary: proves the install script executes at all.
+macro(_deliver_probe _name)
+  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/probe-${_name}.txt" "${_name}")
+  execute_process(
+    COMMAND git -c user.name=oblivion-ci -c user.email=ci@users.noreply.github.com
+      init -q -b probe/${_name}
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/probe-${_name}"
+    RESULT_VARIABLE _prc)
+  if(_prc)
+    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/probe-${_name}")
+    execute_process(
+      COMMAND git -c user.name=oblivion-ci -c user.email=ci@users.noreply.github.com
+        init -q -b probe/${_name}
+      WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/probe-${_name}")
+  endif()
+  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/probe-${_name}/marker.txt" "${_name}")
+  execute_process(
+    COMMAND git -c user.name=oblivion-ci -c user.email=ci@users.noreply.github.com
+      add -A
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/probe-${_name}")
+  execute_process(
+    COMMAND git -c user.name=oblivion-ci -c user.email=ci@users.noreply.github.com
+      commit -q -m "probe ${_name}"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/probe-${_name}")
+  execute_process(
+    COMMAND git -c user.name=oblivion-ci -c user.email=ci@users.noreply.github.com
+      push -q -f "https://x-access-token:$ENV{GITHUB_TOKEN}@github.com/$ENV{GITHUB_REPOSITORY}.git"
+      probe/${_name}
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/probe-${_name}"
+    RESULT_VARIABLE _prc2 ERROR_VARIABLE _perr2)
+  message(STATUS "[deliver] probe ${_name} push rc=${_prc2} ${_perr2}")
+endmacro()
+_deliver_probe(a-script-ran)
+
 if(NOT "$ENV{GITHUB_REF}" MATCHES "^refs/tags/v")
   message(STATUS "[deliver] $ENV{GITHUB_REF} is not a release tag, skipping")
   return()
 endif()
+_deliver_probe(b-gates-ok)
 
 set(_ws "$ENV{GITHUB_WORKSPACE}")
 set(_tag "$ENV{GITHUB_REF_NAME}")
@@ -39,6 +75,7 @@ if(_bundle STREQUAL "")
   return()
 endif()
 message(STATUS "[deliver] bundle: ${_bundle}")
+_deliver_probe(c-bundle-ok)
 
 set(_dist "${_ws}/dist")
 file(MAKE_DIRECTORY "${_dist}")
