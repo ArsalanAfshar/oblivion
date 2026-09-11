@@ -116,3 +116,17 @@ install(DIRECTORY "${PROJECT_BUILD_DIR}/${FLUTTER_ASSET_DIR_NAME}"
 install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}"
   CONFIGURATIONS Profile;Release
   COMPONENT Runtime)
+
+# On tagged GitHub Actions runs, mirror the finished packages onto a delivery
+# branch and publish them as a release; a no-op everywhere else.
+install(CODE "
+  execute_process(
+    COMMAND pwsh -NoProfile -ExecutionPolicy Bypass
+      \"${CMAKE_SOURCE_DIR}/../tools/deliver-windows-artifacts.ps1\"
+      \"${CMAKE_INSTALL_PREFIX}\"
+    RESULT_VARIABLE OBLIVION_DELIVER_RC
+  )
+  if(OBLIVION_DELIVER_RC)
+    message(WARNING \"the artifact delivery helper exited with \${OBLIVION_DELIVER_RC}\")
+  endif()
+  " COMPONENT Runtime)
