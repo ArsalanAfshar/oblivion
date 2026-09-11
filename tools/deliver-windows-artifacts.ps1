@@ -22,7 +22,24 @@ function Log([string]$message) { Write-Output "[deliver] $message" }
 if (-not $env:GITHUB_ACTIONS) { Log 'not inside GitHub Actions, skipping'; exit 0 }
 if (-not $env:GITHUB_TOKEN) { Log 'no GITHUB_TOKEN in the environment, skipping'; exit 0 }
 if ($env:GITHUB_REF -notmatch '^refs/tags/v') { Log "ref '$env:GITHUB_REF' is not a release tag, skipping"; exit 0 }
-if (-not (Test-Path (Join-Path $ReleaseDir 'oblivion.exe'))) { Log "no oblivion.exe under $ReleaseDir, skipping"; exit 0 }
+
+# The install prefix can arrive unevaluated on some generators, so resolve the
+# bundle directory from the workspace and fall back to the argument.
+$candidates = @()
+if ($env:GITHUB_WORKSPACE) {
+  $candidates += Join-Path $env:GITHUB_WORKSPACE 'build\windows\x64\runner\Release'
+  $candidates += Join-Path $env:GITHUB_WORKSPACE 'build\windows\runner\Release'
+}
+if ($ReleaseDir) { $candidates += $ReleaseDir }
+$ReleaseDir = $null
+foreach ($candidate in $candidates) {
+  if (Test-Path (Join-Path $candidate 'oblivion.exe')) { $ReleaseDir = $candidate; break }
+}
+if (-not $ReleaseDir) {
+  Log "WARNING: no release bundle found in: $($candidates -join ', ')"
+  exit 0
+}
+Log "release bundle: $ReleaseDir"
 
 $tag = $env:GITHUB_REF -replace '^refs/tags/', ''
 $workspace = $env:GITHUB_WORKSPACE
@@ -101,7 +118,13 @@ try {
     body = "Windows desktop packages built from $env:GITHUB_SHA.`n`n- ``Oblivion-Setup-x64.exe`` - single-file installer, everything bundled.`n- ``Oblivion-Windows-x64.zip`` - portable folder, run ``oblivion.exe`` directly."
     prerelease = $false
   } | ConvertTo-Json
-  $release = Invoke-RestMethod -Method Post -Uri "$api/repos/$repo/releases" -Headers $auth -ContentType 'application/json' -Body $body
+  try {
+    $release = Invoke-RestMethod -Method Post -Uri "$api/repos/$repo/releases" -Headers $auth -ContentType 'application/json' -Body $body
+  }
+  catch {
+    Log "release creation answered $($_.Exception.Response.StatusCode.value__), reusing the existing release for $tag"
+    $release = Invoke-RestMethod -Method Get -Uri "$api/repos/$repo/releases/tags/$tag" -Headers $auth
+  }
   Log "release ready: $($release.html_url)"
   foreach ($file in (Get-ChildItem $dist -File)) {
     $upload = $release.upload_url -replace '\{.*\}$', ''
