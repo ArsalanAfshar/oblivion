@@ -9,6 +9,8 @@ It is built on [Aether](https://github.com/CluvexStudio/Aether), a user-space
 Warp core written in Rust that speaks MASQUE and WireGuard, and runs on Android,
 Windows and Linux from one codebase.
 
+> **مستندات فارسی:** نسخهٔ کامل فارسی این سند در [README_FA.md](README_FA.md) در دسترس است.
+
 ![oblivion3.jpg](media/oblivion3.jpg)
 
 ## Features
@@ -21,7 +23,11 @@ Windows and Linux from one codebase.
 - **Split tunnelling**: choose which Android apps stay off the tunnel.
 - **Obfuscation**: profiles that reshape the handshake for networks that
   fingerprint it.
-- **User-Friendly**: simple, intuitive interface in Persian and English.
+- **User-Friendly**: simple, intuitive interface in Persian and English, with a
+  right-to-left layout wherever Persian is selected.
+- **Native desktop**: a first-class Windows desktop client with the same design
+  language as the mobile app - system tray integration, a compact window, dark
+  and light themes, and a bundled privileged helper for full-tunnel mode.
 
 ## Quick Start
 
@@ -34,14 +40,88 @@ On Android the app runs as a VPN service and needs no root. On Windows and Linux
 it exposes a local SOCKS5 proxy, and full device routing needs administrator
 rights.
 
+## Windows Desktop
+
+The Windows client is a native desktop application built from the same Flutter
+codebase and the same design language as the mobile app: the amber wordmark, the
+rounded card lists, the single connect switch, and the Vazirmatn typeface are all
+shared, so the desktop app feels like an official sibling of the phone app.
+
+### What ships in the Windows package
+
+Everything the app needs is bundled next to `oblivion.exe`; no runtime,
+library or developer tool has to be installed separately:
+
+| Component | Purpose |
+| --- | --- |
+| `oblivion.exe` | The desktop application itself |
+| `oblivion_core.dll` | The FFI bridge that supervises the tunnel engines |
+| `aether.exe` | The Aether Warp core (MASQUE / WireGuard / gool) |
+| `psiphon.exe` | The Psiphon engine, used by the Psiphon and chain cores |
+| `oblivion-helper.exe` | Privileged helper that configures full-tunnel routing |
+| `hev-socks5-tunnel.exe`, `wintun.dll` | The tun device used by full-tunnel mode |
+| `flutter_windows.dll`, `data\` | The Flutter engine and the app assets |
+
+### Getting it
+
+- **Installer** - run `Oblivion-Setup-x64.exe`, accept the prompts, and Oblivion
+  appears in the Start menu (and optionally on the desktop). The installer
+  silently adds the Microsoft Visual C++ runtime if the machine does not have
+  it already.
+- **Portable** - unpack `Oblivion-Windows-x64.zip` anywhere and run
+  `oblivion.exe` straight from the folder; the archive carries an app-local copy
+  of the C runtime, so it also works on machines without any redistributable.
+
+### Desktop behaviour
+
+- The window opens centred at the phone-like frame the design is drawn for, and
+  can be resized down to a compact panel; closing the window hides the app to
+  the system tray instead of quitting it.
+- The tray icon reports the tunnel stage (idle, connecting, connected) with a
+  distinct icon per stage, and its menu - show, hide, quit - is translated in
+  the active language.
+- **Language**: Settings › Language switches between English and Persian
+  (فارسی). Persian renders fully right-to-left: every row, header, picker and
+  dialog mirrors, while addresses, endpoints and IPs stay left-to-right.
+- **Theme**: Settings › Theme follows the system, or forces dark or light.
+- **Routing**: Settings › Routing mode offers *Local proxy only*, *System
+  proxy* and *Full tunnel*. Full tunnel drives all device traffic through
+  wintun and asks for administrator rights when it starts; without them the app
+  stays on the proxy and says so on the home screen.
+
+### Building the Windows app yourself
+
+On a Windows machine with Flutter 3.44+, Rust and Go installed:
+
+```sh
+git clone --recursive https://github.com/bepass-org/oblivion.git
+cd oblivion
+flutter pub get
+flutter build windows --release
+```
+
+The release bundle lands in `build\windows\x64\runner\Release`. To wrap it in
+the single-file installer, install [Inno Setup](https://jrsoftware.org/isinfo.php)
+and compile the bundled script:
+
+```sh
+iscc windows\installer\oblivion.iss
+```
+
+The script reads the release bundle, embeds the icon and version information,
+and writes `dist\Oblivion-Setup-x64.exe`.
+
 ## Building the Project
 
 ### Prerequisites
 
 - Flutter 3.44 or newer
 - Rust (stable) for the Aether core and the FFI bridge
+- Go, for the Psiphon engine
 - Android NDK r27 or newer, and JDK 17, for Android builds
 - CMake, Ninja, Clang and `libgtk-3-dev` for Linux builds
+- A Windows host, NASM and MSYS2 for Windows builds (NASM builds BoringSSL,
+  MSYS2 builds the hev-socks5-tunnel helper)
 
 ### Clone with the submodules
 
@@ -110,7 +190,7 @@ This project makes use of several open-source tools and libraries, and we are gr
 - **Project**: hev-socks5-tunnel
 - **GitHub Repository**: [hev-socks5-tunnel on GitHub](https://github.com/heiher/hev-socks5-tunnel)
 - **License**: [MIT](https://github.com/heiher/hev-socks5-tunnel/blob/master/LICENSE)
-- **Description**: A tun to socks5 forwarder. On Android it turns the packets from the VPN interface into proxy connections that the core carries.
+- **Description**: A tun to socks5 forwarder. On Android it turns the packets from the VPN interface into proxy connections that the core carries. On Windows it feeds the wintun interface into the local proxy.
 
 ### BoringTun
 
